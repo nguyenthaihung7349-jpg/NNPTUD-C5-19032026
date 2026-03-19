@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Kiểm thử Inventory Management System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1, h2, h3 { color: #2c3e50; }
+        h1 { border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { border-left: 4px solid #3498db; padding-left: 10px; margin-top: 30px; }
+        
+        .section { margin: 25px 0; background: #f8f9fa; padding: 15px; border-radius: 5px; }
+        .endpoint { background: white; border-left: 4px solid #27ae60; padding: 15px; margin: 15px 0; }
+        .method { 
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .get { background: #3498db; }
+        .post { background: #27ae60; }
+        
+        code {
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: #34495e;
+            color: white;
+        }
+        
+        .test-steps {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .test-steps ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        .test-steps li {
+            margin: 8px 0;
+        }
+        
+        .success { color: #27ae60; font-weight: bold; }
+        .warning { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>📊 Báo cáo Kiểm thử Hệ thống Quản lý Kho hàng</h1>
+<p><strong>Ngày tạo:</strong> 19/3/2026</p>
+<p><strong>Người thực hiện:</strong> Nguyễn Thanh Tùng</p>
+
+<div class="section">
+    <h2>1. Tổng quan</h2>
+    <p>Hệ thống quản lý kho hàng (Inventory Management System) cung cấp các API endpoint cho việc quản lý sản phẩm và kho hàng.</p>
+    <p><strong>Công cụ kiểm thử:</strong> Postman</p>
+    <p><strong>Máy chủ:</strong> localhost:3000</p>
+</div>
+
+<div class="section">
+    <h2>2. Cấu trúc Database</h2>
+    <h3>Product Collection</h3>
+    <pre>{
+  "_id": ObjectId,
+  "name": string,
+  "description": string,
+  "price": number,
+  "createdAt": Date
+}</pre>
+    
+    <h3>Inventory Collection</h3>
+    <pre>{
+  "_id": ObjectId,
+  "product": ObjectId (ref: Product),
+  "stock": number (≥ 0),
+  "reserved": number (≥ 0),
+  "soldCount": number (≥ 0),
+  "createdAt": Date
+}</pre>
+</div>
+
+<div class="section">
+    <h2>3. Các API Endpoint</h2>
+    
+    <h3>A. Product Management</h3>
+    
+    <div class="endpoint">
+        <span class="method post">POST</span>
+        <code>/api/products</code>
+        <p><strong>Mô tả:</strong> Tạo sản phẩm mới. Khi tạo sản phẩm, hệ thống sẽ tự động tạo inventory tương ứng.</p>
+        <p><strong>Request Body:</strong></p>
+        <pre>{
+  "name": "Laptop Dell",
+  "description": "High-performance laptop",
+  "price": 1200
+}</pre>
+        <p><strong>Response:</strong></p>
+        <pre>{
+  "product": { ... },
+  "inventory": { ... }
+}</pre>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method get">GET</span>
+        <code>/api/products</code>
+        <p><strong>Mô tả:</strong> Lấy danh sách tất cả sản phẩm</p>
+        <p><strong>Response:</strong> Mảng các sản phẩm</p>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method get">GET</span>
+        <code>/api/products/:id</code>
+        <p><strong>Mô tả:</strong> Lấy chi tiết sản phẩm theo ID</p>
+        <p><strong>Parameters:</strong> <code>id</code> - Product ID</p>
+    </div>
+
+    <h3>B. Inventory Management</h3>
+    
+    <div class="endpoint">
+        <span class="method get">GET</span>
+        <code>/api/inventory</code>
+        <p><strong>Mô tả:</strong> Lấy danh sách tất cả kho hàng (với join thông tin sản phẩm)</p>
+        <p><strong>Response:</strong> Mảng inventory kèm product details</p>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method get">GET</span>
+        <code>/api/inventory/:id</code>
+        <p><strong>Mô tả:</strong> Lấy chi tiết kho hàng theo ID (với join sản phẩm)</p>
+        <p><strong>Parameters:</strong> <code>id</code> - Inventory ID</p>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method get">GET</span>
+        <code>/api/inventory/product/:productId</code>
+        <p><strong>Mô tả:</strong> Lấy kho hàng theo Product ID</p>
+        <p><strong>Parameters:</strong> <code>productId</code> - Product ID</p>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method post">POST</span>
+        <code>/api/inventory/add-stock</code>
+        <p><strong>Mô tả:</strong> Thêm stock cho sản phẩm</p>
+        <p><strong>Request Body:</strong></p>
+        <pre>{
+  "product": "product_id",
+  "quantity": 100
+}</pre>
+        <p><strong>Hiệu ứng:</strong> stock += quantity</p>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method post">POST</span>
+        <code>/api/inventory/remove-stock</code>
+        <p><strong>Mô tả:</strong> Giảm stock cho sản phẩm (kiểm tra đủ stock)</p>
+        <p><strong>Request Body:</strong></p>
+        <pre>{
+  "product": "product_id",
+  "quantity": 10
+}</pre>
+        <p><strong>Hiệu ứng:</strong> stock -= quantity (nếu stock ≥ quantity)</p>
+        <p><span class="warning">⚠️ Lỗi nếu stock không đủ</span></p>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method post">POST</span>
+        <code>/api/inventory/reservation</code>
+        <p><strong>Mô tả:</strong> Tạo đặt hàng - giảm stock, tăng reserved</p>
+        <p><strong>Request Body:</strong></p>
+        <pre>{
+  "product": "product_id",
+  "quantity": 20
+}</pre>
+        <p><strong>Hiệu ứng:</strong> stock -= quantity, reserved += quantity</p>
+        <p><span class="warning">⚠️ Kiểm tra đủ stock</span></p>
+    </div>
+    
+    <div class="endpoint">
+        <span class="method post">POST</span>
+        <code>/api/inventory/sold</code>
+        <p><strong>Mô tả:</strong> Ghi nhận hàng đã bán - giảm reserved, tăng soldCount</p>
+        <p><strong>Request Body:</strong></p>
+        <pre>{
+  "product": "product_id",
+  "quantity": 5
+}</pre>
+        <p><strong>Hiệu ứng:</strong> reserved -= quantity, soldCount += quantity</p>
+        <p><span class="warning">⚠️ Kiểm tra đủ reserved</span></p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>4. Kế hoạch Kiểm thử</h2>
+    
+    <h3><span class="success">✓ Test Case 1: Tạo Sản phẩm</span></h3>
+    <div class="test-steps">
+        <ol>
+            <li>Gọi endpoint: <code>POST /api/products</code></li>
+            <li>Gửi dữ liệu:
+                <pre>{ "name": "Laptop Dell", "description": "High-performance", "price": 1200 }</pre>
+            </li>
+            <li>Xác nhận: Product được tạo và inventory tự động được tạo</li>
+            <li>Mã lưu: product_id cho các test tiếp theo</li>
+        </ol>
+    </div>
+    
+    <h3><span class="success">✓ Test Case 2: Lấy Danh sách Inventory</span></h3>
+    <div class="test-steps">
+        <ol>
+            <li>Gọi endpoint: <code>GET /api/inventory</code></li>
+            <li>Xác nhận: Trả về danh sách inventory kèm thông tin sản phẩm</li>
+            <li>Lưu inventory_id cho các test tiếp theo</li>
+        </ol>
+    </div>
+    
+    <h3><span class="success">✓ Test Case 3: Thêm Stock</span></h3>
+    <div class="test-steps">
+        <ol>
+            <li>Gọi endpoint: <code>POST /api/inventory/add-stock</code></li>
+            <li>Gửi: <code>{ "product": "product_id", "quantity": 100 }</code></li>
+            <li>Xác nhận: stock tăng từ 0 lên 100</li>
+        </ol>
+    </div>
+    
+    <h3><span class="success">✓ Test Case 4: Giảm Stock</span></h3>
+    <div class="test-steps">
+        <ol>
+            <li>Gọi endpoint: <code>POST /api/inventory/remove-stock</code></li>
+            <li>Gửi: <code>{ "product": "product_id", "quantity": 20 }</code></li>
+            <li>Xác nhận: stock giảm từ 100 xuống 80</li>
+        </ol>
+    </div>
+    
+    <h3><span class="success">✓ Test Case 5: Tạo Reservation</span></h3>
+    <div class="test-steps">
+        <ol>
+            <li>Gọi endpoint: <code>POST /api/inventory/reservation</code></li>
+            <li>Gửi: <code>{ "product": "product_id", "quantity": 30 }</code></li>
+            <li>Xác nhận: stock giảm, reserved tăng (stock: 50, reserved: 30)</li>
+        </ol>
+    </div>
+    
+    <h3><span class="success">✓ Test Case 6: Record Sold</span></h3>
+    <div class="test-steps">
+        <ol>
+            <li>Gọi endpoint: <code>POST /api/inventory/sold</code></li>
+            <li>Gửi: <code>{ "product": "product_id", "quantity": 15 }</code></li>
+            <li>Xác nhận: reserved giảm, soldCount tăng (reserved: 15, soldCount: 15)</li>
+        </ol>
+    </div>
+    
+    <h3><span class="success">✓ Test Case 7: Lấy Inventory theo ID</span></h3>
+    <div class="test-steps">
+        <ol>
+            <li>Gọi endpoint: <code>GET /api/inventory/inventory_id</code></li>
+            <li>Xác nhận: Trả về thông tin chi tiết kèm product (join)</li>
+        </ol>
+    </div>
+</div>
+
+<div class="section">
+    <h2>5. Hướng dẫn Kiểm thử với Postman</h2>
+    
+    <h3>Bước 1: Import Collection</h3>
+    <ol>
+        <li>Mở Postman</li>
+        <li>Nhấn "Import" → "Choose Files"</li>
+        <li>Chọn file <code>Inventory_API.postman_collection.json</code></li>
+        <li>Bộ sưu tập sẽ được import</li>
+    </ol>
+    
+    <h3>Bước 2: Đặt Biến Environment</h3>
+    <ol>
+        <li>Tạo Environment mới với tên "Inventory"</li>
+        <li>Thêm biến:
+            <table>
+                <tr>
+                    <th>Biến</th>
+                    <th>Giá trị</th>
+                </tr>
+                <tr>
+                    <td>product_id</td>
+                    <td>(sẽ cập nhật sau khi tạo product)</td>
+                </tr>
+                <tr>
+                    <td>inventory_id</td>
+                    <td>(sẽ cập nhật sau khi tạo inventory)</td>
+                </tr>
+            </table>
+        </li>
+    </ol>
+    
+    <h3>Bước 3: Chạy các Test</h3>
+    <ol>
+        <li><strong>Khởi động server:</strong> <code>npm start</code></li>
+        <li><strong>Tạo sản phẩm:</strong> POST /api/products
+            <ul>
+                <li>Sao chép product._id vào biến product_id</li>
+            </ul>
+        </li>
+        <li><strong>Lấy danh sách inventory:</strong> GET /api/inventory
+            <ul>
+                <li>Sao chép inventory._id vào biến inventory_id</li>
+            </ul>
+        </li>
+        <li><strong>Chạy các endpoint còn lại:</strong> Thêm stock, giảm stock, reservation, sold</li>
+        <li><strong>Kiểm tra kết quả:</strong> Xác nhận các giá trị thay đổi đúng theo yêu cầu</li>
+    </ol>
+</div>
+
+<div class="section">
+    <h2>6. Kết quả Kiểm thử</h2>
+    <table>
+        <tr>
+            <th>Test Case</th>
+            <th>Kết quả</th>
+            <th>Ghi chú</th>
+        </tr>
+        <tr>
+            <td>Tạo sản phẩm</td>
+            <td><span class="success">✓ PASS</span></td>
+            <td>Product và Inventory được tạo tự động</td>
+        </tr>
+        <tr>
+            <td>Lấy danh sách</td>
+            <td><span class="success">✓ PASS</span></td>
+            <td>Trả về dữ liệu kèm join thông tin</td>
+        </tr>
+        <tr>
+            <td>Thêm stock</td>
+            <td><span class="success">✓ PASS</span></td>
+            <td>Stock tăng chính xác</td>
+        </tr>
+        <tr>
+            <td>Giảm stock</td>
+            <td><span class="success">✓ PASS</span></td>
+            <td>Stock giảm chính xác, kiểm tra đủ</td>
+        </tr>
+        <tr>
+            <td>Reservation</td>
+            <td><span class="success">✓ PASS</span></td>
+            <td>Stock giảm, reserved tăng</td>
+        </tr>
+        <tr>
+            <td>Sold</td>
+            <td><span class="success">✓ PASS</span></td>
+            <td>Reserved giảm, soldCount tăng</td>
+        </tr>
+        <tr>
+            <td>Join Product</td>
+            <td><span class="success">✓ PASS</span></td>
+            <td>Thông tin sản phẩm được trả về</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>7. Kết luận</h2>
+    <p>✅ Tất cả các chức năng đã được kiểm thử thành công</p>
+    <p>✅ Các yêu cầu được đáp ứng đầy đủ:</p>
+    <ul>
+        <li>✓ Tạo inventory khi tạo product</li>
+        <li>✓ Get all, get by ID (với join product)</li>
+        <li>✓ Thêm stock</li>
+        <li>✓ Giảm stock</li>
+        <li>✓ Reservation</li>
+        <li>✓ Sold</li>
+        <li>✓ Git repository</li>
+        <li>✓ Postman collection để kiểm thử</li>
+    </ul>
+</div>
+
+</body>
+</html>
